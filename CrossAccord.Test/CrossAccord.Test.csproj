@@ -8,6 +8,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\CrossAccord.Common\CrossAccord.Common.csproj" />
+      <ProjectReference Include="..\CrossAccord.Generator\CrossAccord.Generator\CrossAccord.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <ProjectReference Include="..\CrossAccord\CrossAccord.csproj" />
     </ItemGroup>
 
 </Project>
