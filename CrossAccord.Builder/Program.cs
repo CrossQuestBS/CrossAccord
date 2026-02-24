@@ -16,6 +16,7 @@ public static class GeneratePatches
             .Parent.FullName;
         var assembliesPath = Path.Join(projectDirectory, "CrossAccord.Tests/bin/Debug/net10.0");
         
+        
         List<string> assemblies = new();
 
         foreach (var file in Directory.GetFiles(assembliesPath))
@@ -35,20 +36,16 @@ public static class GeneratePatches
         var patchers = AssemblyGenerator.GetAllPatchers(assemblies.ToArray());
 
         Console.WriteLine("Patcher result: \n");
-        foreach (var (key, value) in patchers)
+        foreach (var patcherInfo in patchers)
         {
-            Console.WriteLine($"Patcher for {key}\n");
+            Console.WriteLine($"Patcher for {patcherInfo.MethodFullName}\n");
         }
-
-        var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
-
-        var domain = AppDomain.CurrentDomain.GetAssemblies();
+        
         List<MetadataReference> metadataReferences = new();
         
         
         metadataReferences.AddRange(NetStandard21.References.All);
         
-        var assemblyyy = Assembly.GetExecutingAssembly();
         MetadataReference[] references =
             new MetadataReference[]
             {
@@ -64,41 +61,39 @@ public static class GeneratePatches
         
         CSharpCompilation compilation = CSharpCompilation.Create(
             "CrossAccord.Generated",
-            syntaxTrees: patchers.Values.ToArray(),
+            syntaxTrees: patchers.Select(it => it.GeneratedCode),
             references: metadataReferences.ToArray(),
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-        using (var ms = new MemoryStream())
+        using var ms = new MemoryStream();
+        // first compile
+        EmitResult result = compilation.Emit(ms);
+
+        // if failed, get error message
+        if (!result.Success)
         {
-            // first compile
-            EmitResult result = compilation.Emit(ms);
+            IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
+                diagnostic.IsWarningAsError ||
+                diagnostic.Severity == DiagnosticSeverity.Error);
 
-            // if failed, get error message
-            if (!result.Success)
+            foreach (Diagnostic diagnostic in failures)
             {
-                IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
-                    diagnostic.IsWarningAsError ||
-                    diagnostic.Severity == DiagnosticSeverity.Error);
-
-                foreach (Diagnostic diagnostic in failures)
-                {
-                    throw new Exception(string.Format("Failed to compile code '{0}'! {1}: {2}", "Uhm?", diagnostic.Id,
-                        diagnostic.GetMessage()));
-                }
-
-                throw new Exception("Unknown error while compiling code '" + "Uhm?" + "'!");
+                throw new Exception(string.Format("Failed to compile code '{0}'! {1}: {2}", "Uhm?", diagnostic.Id,
+                    diagnostic.GetMessage()));
             }
-            // on success, load into assembly
-            else
-            {
-                // load assembly and add to cache
-                ms.Seek(0, SeekOrigin.Begin);
 
-                var fileStream = File.Create(projectDirectory + "/CrossAccord.Generated.dll");
-
-                ms.CopyTo(fileStream);
-                fileStream.Close();
-            }
+            throw new Exception("Unknown error while compiling code '" + "Uhm?" + "'!");
         }
+        // on success, load into assembly
+
+        // load assembly and add to cache
+        ms.Seek(0, SeekOrigin.Begin);
+
+        var fileStream = File.Create(projectDirectory + "/CrossAccord.Generated.dll");
+
+        ms.CopyTo(fileStream);
+        fileStream.Close();
+        
+        AssemblyPatcher.PatchAll(patchers, projectDirectory + "/CrossAccord.Generated.dll");
     }
 }

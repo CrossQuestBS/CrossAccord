@@ -138,7 +138,7 @@ public class SourceGeneratorWithAttributes : IIncrementalGenerator
 
             if (hasPrefixAttribute)
             {
-                interfaceCode.Append($"bool Prefix({GeneratePatchParameters(classSymbol, method)});\n");
+                interfaceCode.Append($"bool Prefix({GeneratePatchParameters(patchClassSymbol, method)});\n");
             }
             
             // Build up the source code
@@ -151,11 +151,11 @@ public partial interface I{className} : CrossAccord.Common.Interfaces.IAccordPat
 
 public partial class {className} : I{className} {{
     private void Patch() {{
-        CrossAccord.RuntimeManager.Patch(this);
+        CrossAccord.RuntimeManager.Instance.Patch(this);
     }}
 
     private void Unpatch() {{
-        CrossAccord.RuntimeManager.Unpatch(this);
+        CrossAccord.RuntimeManager.Instance.Unpatch(this);
     }}
 }}
 ";

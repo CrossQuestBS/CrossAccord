@@ -14,4 +14,10 @@
       <ProjectReference Include="..\CrossAccord\CrossAccord.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="CrossAccord.Generated">
+        <HintPath>..\CrossAccord.Generated.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>
