@@ -8,7 +8,7 @@ var simpleClass = new SimpleClass();
 
 using (var patch = new SimpleClassPatch())
 {
-    Console.WriteLine("[START] - Patching SimpleClass");
+    Console.WriteLine("[START] - Patching SimpleClass OWOWO");
     var returnValue = simpleClass.Run("Patch run!");
     Console.WriteLine("[END] return value is: " + returnValue + "\n");
     

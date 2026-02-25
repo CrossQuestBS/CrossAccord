@@ -6,11 +6,15 @@ public static class AssemblyHelper
 {
     private static DefaultAssemblyResolver _resolver;
     
-    public static void InitializeResolver(string assemblyParentPath)
+    public static void InitializeResolver(string assemblyParentPath, string[] extraPaths)
     {
         _resolver = new DefaultAssemblyResolver();
 
         _resolver.AddSearchDirectory(assemblyParentPath);
+        foreach (var path in extraPaths)
+        {
+            _resolver.AddSearchDirectory(path);
+        }
     }
 
     public static AssemblyDefinition ReadAssemblyInMemory(string path, bool readWrite = true)

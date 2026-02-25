@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -49,53 +50,61 @@ public class SourceGeneratorWithAttributes : IIncrementalGenerator
     private string GeneratePatchParameters(INamedTypeSymbol classSymbol, IMethodSymbol methodSymbol)
     {
         StringBuilder sb = new();
-        var classNameSpace = classSymbol.ContainingNamespace.ToDisplayString();
-        
-        if (classNameSpace.Length > 0)
-        {
-            sb.Append(classNameSpace + ".");
-        }
 
-        sb.Append($"{classSymbol.Name} instance");
+        List<string> listParameters = new();
+
+        
+        if (!methodSymbol.IsStatic)
+        {
+            var instanceParameter = "";
+            var classNameSpace = classSymbol.ContainingNamespace.ToDisplayString().Replace("<global namespace>", "global::");
+        
+            if (classNameSpace.Length > 0 && classNameSpace != "global::")
+            {
+                instanceParameter += classNameSpace + ".";
+            }
+
+            instanceParameter += $"{classSymbol.Name} instance";
+            listParameters.Add(instanceParameter);
+        }
         
         var methodArguments = methodSymbol.Parameters.ToList();
-
+        
         if (methodArguments.Count > 0)
         {
-            sb.Append(", ");
             for (int i = 0; i < methodArguments.Count; i++)
             {
+                var currParameter = "";
                 var parameterSymbol = methodArguments[i];
-                sb.Append($"ref ");
-                var parameterNamespace = parameterSymbol.Type.ContainingNamespace.ToDisplayString();
+                currParameter += "ref ";
+                var parameterNamespace = parameterSymbol.Type.ContainingNamespace.ToDisplayString().Replace("<global namespace>", "global::");
 
-                if (parameterNamespace.Length > 0)
+                if (parameterNamespace.Length > 0 && parameterNamespace != "global::")
                 {
-                    sb.Append(parameterNamespace + ".");
+                    currParameter += parameterNamespace + ".";
                 }
 
-                sb.Append($"{parameterSymbol.Type.Name} arg{i + 1}");
+                currParameter += $"{parameterSymbol.Type.Name.Replace("<global namespace>", "global::")} arg{i + 1}";
 
-                if (i != methodArguments.Count - 1)
-                {
-                    sb.Append(", ");
-                }
+                listParameters.Add(currParameter);
             }
         }
 
-        if (methodSymbol.ReturnType.Name == "Void") return sb.ToString();
-        
-        sb.Append(", ref ");
-        var returnTypeNamespace = methodSymbol.ReturnType.ContainingNamespace.ToDisplayString();
+        if (methodSymbol.ReturnType.Name == "Void") return string.Join(", ", listParameters);
 
-        if (returnTypeNamespace.Length > 0)
+        var returnTypeParameter = ("ref ");
+        var returnTypeNamespace = methodSymbol.ReturnType.ContainingNamespace.ToDisplayString().Replace("<global namespace>", "global::");
+
+        if (returnTypeNamespace.Length > 0 && returnTypeNamespace != "global::")
         {
-            sb.Append(returnTypeNamespace + ".");
+            returnTypeParameter += (returnTypeNamespace + ".");
         }
 
-        sb.Append($"{methodSymbol.ReturnType.Name} returnValue");
+        returnTypeParameter += ($"{methodSymbol.ReturnType.Name} returnValue");
 
-        return sb.ToString();
+        listParameters.Add(returnTypeParameter);
+        
+        return string.Join(", ", listParameters);
     }
     
     private void GenerateCode(SourceProductionContext context, Compilation compilation,
@@ -108,7 +117,7 @@ public class SourceGeneratorWithAttributes : IIncrementalGenerator
             if (semanticModel.GetDeclaredSymbol(classDeclarationSyntax) is not INamedTypeSymbol classSymbol)
                 continue;
 
-            var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
+            var namespaceName = classSymbol.ContainingNamespace.ToDisplayString().Replace("<global namespace>", "global::");
 
             var className = classDeclarationSyntax.Identifier.Text;
             
@@ -121,7 +130,17 @@ public class SourceGeneratorWithAttributes : IIncrementalGenerator
             if (generatedAttribute.ConstructorArguments[1].Value is not string methodName)
                 continue;
             
-            var method = patchClassSymbol.GetMembers().OfType<IMethodSymbol>().First(it => it.Name == methodName);
+            var methods = patchClassSymbol.GetMembers().OfType<IMethodSymbol>().ToArray();
+            
+            if (methods.Length == 0)
+                continue;
+            
+            var method = patchClassSymbol.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(it => it.Name == methodName);
+
+            if (method is null)
+            {
+                continue;
+            }
             
             StringBuilder interfaceCode = new();
 
@@ -143,19 +162,19 @@ public class SourceGeneratorWithAttributes : IIncrementalGenerator
             
             // Build up the source code
             var code = $@"// <auto-generated/>
-namespace {namespaceName};
-
-public partial interface I{className} : CrossAccord.Common.Interfaces.IAccordPatch {{ 
-    {interfaceCode}
-}}
-
-public partial class {className} : I{className} {{
-    private void Patch() {{
-        CrossAccord.RuntimeManager.Instance.Patch(this);
+namespace {namespaceName} {{
+    public partial interface I{className} : CrossAccord.Common.Interfaces.IAccordPatch {{ 
+        {interfaceCode}
     }}
 
-    private void Unpatch() {{
-        CrossAccord.RuntimeManager.Instance.Unpatch(this);
+    public partial class {className} : I{className} {{
+        private void Patch() {{
+            CrossAccord.RuntimeManager.Instance.Patch(this);
+        }}
+
+        private void Unpatch() {{
+            CrossAccord.RuntimeManager.Instance.Unpatch(this);
+        }}
     }}
 }}
 ";

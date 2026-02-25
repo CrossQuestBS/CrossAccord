@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossAccord.Tests", "CrossA
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossAccord.Console", "CrossAccord.Console\CrossAccord.Console.csproj", "{2CAFC4B1-8219-4D2C-B45E-3B9E6621DC27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossAccord.Unity", "CrossAccord.Unity\CrossAccord.Unity.csproj", "{9B56957B-D4EF-483A-95FF-5333F447AD79}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,5 +50,9 @@ Global
 		{2CAFC4B1-8219-4D2C-B45E-3B9E6621DC27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2CAFC4B1-8219-4D2C-B45E-3B9E6621DC27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2CAFC4B1-8219-4D2C-B45E-3B9E6621DC27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B56957B-D4EF-483A-95FF-5333F447AD79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B56957B-D4EF-483A-95FF-5333F447AD79}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B56957B-D4EF-483A-95FF-5333F447AD79}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B56957B-D4EF-483A-95FF-5333F447AD79}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

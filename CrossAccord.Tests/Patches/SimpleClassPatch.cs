@@ -9,7 +9,6 @@ namespace CrossAccord.Tests.Patches;
 [AccordPrefix]
 public partial class SimpleClassPatch : IDisposable
 {
-
     public bool shouldRunOriginal { get; set; }= true;
     
     public SimpleClassPatch()

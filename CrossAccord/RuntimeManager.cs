@@ -21,16 +21,17 @@ public class RuntimeManager
         var types = generatedAssembly.GetTypes()
             .Where(p => interfacePatcher.IsAssignableFrom(p));
 
-        foreach (var patcherType  in types)
+        foreach (var patcherType in types)
         {
-            var methodInfo = patcherType.GetMethod("get_Instance");
+            var methodInfo = patcherType.GetMethod("get_Instance", (global::System.Reflection.BindingFlags)~0);
             object[] array = [];
             if (methodInfo == null) continue;
             var instance = (IAccordPatcher)methodInfo.Invoke(null, array);
-            var methodInfo2 = patcherType.GetMethod("get_OriginalMethod");
+            var methodInfo2 = patcherType.GetMethod("get_OriginalMethod", (global::System.Reflection.BindingFlags)~0);
             if (methodInfo2 == null) continue;
             var originalMethod = methodInfo2.Invoke(null, array);
-            Patchers.TryAdd((MethodInfo)originalMethod, instance);
+            if (originalMethod is not null)
+                Patchers.TryAdd((MethodInfo)originalMethod, instance);
         }
     }
     

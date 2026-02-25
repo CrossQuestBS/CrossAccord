@@ -7,7 +7,10 @@ public static class MethodInfoExtensions
 {
     public static bool ValidatePatch(this MethodInfo methodInfo, MethodInfo originalMethod)
     {
-        var parameters = methodInfo.GetParameters();
+        // TODO: Fix this
+        
+        
+        /*var parameters = methodInfo.GetParameters();
         var originalParameters = originalMethod.GetParameters();
 
         if (parameters[0].ParameterType.FullName != originalMethod.DeclaringType?.FullName)
@@ -25,7 +28,7 @@ public static class MethodInfoExtensions
 
             if (originalParameter.ParameterType.FullName + "&" != prefixParameter.ParameterType.FullName)
                 return false;
-        }
+        }*/
 
         return true;
     }

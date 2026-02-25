@@ -148,20 +148,19 @@ public static class AssemblyPatcher
         }
     }
 
-    public static void PatchAll(PatcherInfo[] patchers, string generatedPath)
+    public static void PatchAll(PatcherInfo[] patchers, string generatedPath, string assemblyParentPath)
     {
-        var patcherGroupedByAssemblyPath = patchers.GroupBy(it => it.AssemblyPath);
+        var patcherGroupedByAssemblyPath = patchers.GroupBy(it => it.AssemblyName);
 
         foreach (var grouping in patcherGroupedByAssemblyPath)
         {
-            var assemblyParentPath = Directory.GetParent(grouping.Key).FullName;
-            AssemblyHelper.InitializeResolver(assemblyParentPath);
+            AssemblyHelper.InitializeResolver(assemblyParentPath, Array.Empty<string>());
 
-            using var assembly = AssemblyHelper.ReadAssemblyInMemory(grouping.Key);
+            using var assembly = AssemblyHelper.ReadAssemblyInMemory(Path.Join(assemblyParentPath, grouping.Key));
             using var generatedAssembly = AssemblyHelper.ReadAssemblyInMemory(generatedPath);
             
             PatchAssembly(grouping.ToArray(), assembly, generatedAssembly);
-            assembly.Write(assembly.MainModule.FileName);
+            assembly.Write(Path.Join(assemblyParentPath, grouping.Key));
         }
     }
     
