@@ -8,7 +8,7 @@ namespace CrossAccord;
 
 public class RuntimeManager
 {
-    private readonly Dictionary<MethodInfo, IAccordPatcher> Patchers = new ();
+    private readonly Dictionary<MemberInfo, IAccordPatcher> Patchers = new ();
 
     public static RuntimeManager Instance { get; } = new();
     
@@ -27,12 +27,13 @@ public class RuntimeManager
             object[] array = [];
             if (methodInfo == null) continue;
             var instance = (IAccordPatcher)methodInfo.Invoke(null, array);
-            var methodInfo2 = patcherType.GetMethod("get_OriginalMethod", (global::System.Reflection.BindingFlags)~0);
+            var methodInfo2 = patcherType.GetMethod("get_OriginalMemberInfo", (global::System.Reflection.BindingFlags)~0);
             if (methodInfo2 == null) continue;
             var originalMethod = methodInfo2.Invoke(null, array);
-            if (originalMethod is not null)
-                Patchers.TryAdd((MethodInfo)originalMethod, instance);
+            if (originalMethod is not null && instance is not null)
+                Patchers.TryAdd((MemberInfo)originalMethod, instance);
         }
+        
     }
     
     public void RegisterPatcher(IAccordPatcher patcher, MethodInfo methodInfo)
@@ -42,9 +43,12 @@ public class RuntimeManager
     
     public void Patch(IAccordPatch patch)
     {
-        foreach (var (methodInfo, accordPatcher) in Patchers)
+        foreach (var (memberInfo, accordPatcher) in Patchers)
         {
-            if (patch.Method.HasSameMetadataDefinitionAs(methodInfo))
+            if (patch.MemberMethod is null)
+                throw new NullReferenceException($"{patch.GetType().FullName} has empty Method!");
+            
+            if (patch.MemberMethod.HasSameMetadataDefinitionAs(memberInfo))
             {
                 accordPatcher.Patch(patch);
             }
@@ -53,9 +57,12 @@ public class RuntimeManager
     
     public void Unpatch(IAccordPatch patch)
     {
-        foreach (var (methodInfo, accordPatcher) in Patchers)
+        foreach (var (memberInfo, accordPatcher) in Patchers)
         {
-            if (patch.Method.HasSameMetadataDefinitionAs(methodInfo))
+            if (patch.MemberMethod is null)
+                throw new NullReferenceException($"{patch.GetType().FullName} has empty Method!");
+            
+            if (patch.MemberMethod.HasSameMetadataDefinitionAs(memberInfo))
             {
                 accordPatcher.Unpatch(patch);
             }

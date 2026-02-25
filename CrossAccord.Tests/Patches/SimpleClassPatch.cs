@@ -16,7 +16,7 @@ public partial class SimpleClassPatch : IDisposable
         Patch();
     }
 
-    public MethodInfo Method { get; } = typeof(SimpleClass).GetMethod(nameof(SimpleClass.Run))!;
+    public MemberInfo MemberMethod { get; } = typeof(SimpleClass).GetMember(nameof(SimpleClass.Run)).FirstOrDefault()!;
     
     public void Postfix(SimpleClass instance, ref string arg1, ref bool returnValue)
     {

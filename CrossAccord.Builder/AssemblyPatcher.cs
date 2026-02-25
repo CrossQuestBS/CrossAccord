@@ -16,10 +16,6 @@ public static class AssemblyPatcher
 
         var nopStart = ilProcessor.Create(OpCodes.Nop);
         
-        
-        
-        
-        
         nopInstructions["StartOriginal"] = nopStart;
         
         ilProcessor.InsertBefore(startInstruction, nopStart);
@@ -49,7 +45,10 @@ public static class AssemblyPatcher
         
         for (int i = 0; i < parameters; i++)
         {
-            ilProcessor.InsertBefore(nopInstructions["StartOriginal"], ilProcessor.Create(OpCodes.Ldarga, i+(originalMethod.HasThis ? 1 : 0)));
+            ilProcessor.InsertBefore(nopInstructions["StartOriginal"],
+                originalMethod.Parameters[i].ParameterType.IsByReference
+                    ? ilProcessor.Create(OpCodes.Ldarg, i + (originalMethod.HasThis ? 1 : 0))
+                    : ilProcessor.Create(OpCodes.Ldarga, i + (originalMethod.HasThis ? 1 : 0)));
         }
 
         if (returnValue != null)
@@ -83,12 +82,16 @@ public static class AssemblyPatcher
 
         if (originalMethod.HasThis)
         {
+            
             ilProcessor.InsertBefore(nopInstructions["PostfixEnd"], ilProcessor.Create(OpCodes.Ldarg, 0));
         }
         
         for (int i = 0; i < parameters; i++)
         {
-            ilProcessor.InsertBefore(nopInstructions["PostfixEnd"], ilProcessor.Create(OpCodes.Ldarga, i+(originalMethod.HasThis ? 1 : 0)));
+            ilProcessor.InsertBefore(nopInstructions["PostfixEnd"],
+                originalMethod.Parameters[i].ParameterType.IsByReference
+                    ? ilProcessor.Create(OpCodes.Ldarg, i + (originalMethod.HasThis ? 1 : 0))
+                    : ilProcessor.Create(OpCodes.Ldarga, i + (originalMethod.HasThis ? 1 : 0)));
         }
 
         if (returnValue != null)

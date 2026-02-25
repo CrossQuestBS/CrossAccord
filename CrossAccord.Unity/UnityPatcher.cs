@@ -19,7 +19,6 @@ public class UnityPatcher : IPostBuildPlayerScriptDLLs
 
         var assemblyParentPath = Directory.GetParent(assemblies.First()).FullName;
         
-        //AssemblyGenerator.GeneratePatcherAssembly(patchers, assemblies, assemblyParentPath);
         AssemblyPatcher.PatchAll(SharedState.PatcherInfos, Path.Join(assemblyParentPath, "CrossAccord.Generated.dll"), assemblyParentPath);
     }
 }

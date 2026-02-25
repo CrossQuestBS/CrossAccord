@@ -5,7 +5,7 @@ namespace CrossAccord.Common;
 
 public static class MethodInfoExtensions
 {
-    public static bool ValidatePatch(this MethodInfo methodInfo, MethodInfo originalMethod)
+    public static bool ValidatePatch(this MethodInfo methodInfo, MemberInfo originalMethod)
     {
         // TODO: Fix this
         

@@ -76,7 +76,16 @@ public class SourceGeneratorWithAttributes : IIncrementalGenerator
             {
                 var currParameter = "";
                 var parameterSymbol = methodArguments[i];
-                currParameter += "ref ";
+
+                if (parameterSymbol.RefKind == RefKind.In)
+                {
+                    currParameter += "in ";
+                }
+                else
+                {
+                    currParameter += "ref ";
+                }
+                
                 var parameterNamespace = parameterSymbol.Type.ContainingNamespace.ToDisplayString().Replace("<global namespace>", "global::");
 
                 if (parameterNamespace.Length > 0 && parameterNamespace != "global::")

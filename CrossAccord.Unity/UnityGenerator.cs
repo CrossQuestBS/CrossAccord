@@ -29,6 +29,12 @@ public class UnityGenerator : IPreprocessBuildWithReport
         
         SharedState.PatcherInfos = patchers;
 
+        foreach (var patcher in patchers)
+        {
+            Debug.Log(patcher.MethodFullName);
+            Debug.Log(patcher.GeneratedCode.GetText());
+        }
+
         AssemblyGenerator.GeneratePatcherAssembly(patchers, files.ToArray(), assemblyParentPath);
     }
 }

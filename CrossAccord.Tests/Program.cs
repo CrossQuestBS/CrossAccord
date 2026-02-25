@@ -17,6 +17,15 @@ using (var patch = new SimpleClassPatch())
     returnValue = simpleClass.Run("Patch run!");
     Console.WriteLine("[END] return value is: " + returnValue + "\n");
 }
+
+
 Console.WriteLine("[START] - No longer patching SimpleClass");
 var returnValue2 = simpleClass.Run("No patches!");
 Console.WriteLine("[END] return value is: " + returnValue2);
+
+using (var newpatch = new SimpleClassExperimentalPatch())
+{
+    Console.WriteLine("[START] - Patching SimpleClass (Experimental)");
+    var returnValue = simpleClass.RunWithIn("Hi!");
+    Console.WriteLine("[END] return value is: " + returnValue + "\n");
+}

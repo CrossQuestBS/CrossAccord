@@ -1,3 +1,4 @@
+using System.Reflection;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -16,7 +17,6 @@ public static class AssemblyGenerator
         foreach (var assemblyPath in assemblies)
         {
             var assemblyParentPath = Directory.GetParent(assemblyPath).FullName;
-            Console.WriteLine(assemblyParentPath);
             
             AssemblyHelper.InitializeResolver(assemblyParentPath, extraPaths.ToArray());
 
@@ -130,8 +130,9 @@ public static class AssemblyGenerator
         
         if (methodDefinition.Parameters.Count > 0)
         {
-            simpleParameters.AddRange(methodDefinition.Parameters.Select((it, idx) => $"ref arg{idx + 1}").ToArray());
-            totalParameters.AddRange( methodDefinition.Parameters.Select((it, idx) => $"ref global::{it.ParameterType.FullName} arg{idx+1}").ToArray());
+            
+            simpleParameters.AddRange(methodDefinition.Parameters.Select((it, idx) => $"{(it.IsIn ? "" : "ref")} arg{idx + 1}").ToArray());
+            totalParameters.AddRange( methodDefinition.Parameters.Select((it, idx) => $"{(it.IsIn ? "in" : "ref")} global::{it.ParameterType.FullName.Replace("&", "").Replace("modreq(System.Runtime.InteropServices.InAttribute)", "")} arg{idx+1}").ToArray());
         }
 
         if (methodDefinition.ReturnType.Name != "Void")
@@ -142,7 +143,7 @@ public static class AssemblyGenerator
 
         parameters = string.Join(", ", totalParameters);
         parameterSimpleValue = string.Join(", ", simpleParameters);
-        
+
         return CSharpSyntaxTree.ParseText($@"using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -154,8 +155,8 @@ namespace CrossAccord.Generated.{fullClassName}.{methodName.Replace(".", "Dot")}
 
 public class {generatedClassName} : IAccordPatcher
 {{
-    public static MethodInfo OriginalMethod {{ get; }} =
-        typeof(global::{fullClassName}).GetMethod(""{methodName}"", (global::System.Reflection.BindingFlags)~0)!;
+    public static MemberInfo OriginalMemberInfo {{ get; }} =
+        typeof(global::{fullClassName}).GetMember(""{methodName}"", (global::System.Reflection.BindingFlags)~0)[0]!;
 
     private delegate bool PrefixDelegate({parameters});
 
@@ -174,14 +175,14 @@ public class {generatedClassName} : IAccordPatcher
     {{
         var prefixMethodInfo = instance.GetPatchMethodInfo(""Prefix"");
 
-        if (prefixMethodInfo is not null && prefixMethodInfo.ValidatePatch(OriginalMethod))
+        if (prefixMethodInfo is not null && prefixMethodInfo.ValidatePatch(OriginalMemberInfo))
         {{
             PrefixDict.Add(instance, (PrefixDelegate)Delegate.CreateDelegate(typeof(PrefixDelegate), instance, prefixMethodInfo));
         }}
 
         var postfixMethodInfo = instance.GetPatchMethodInfo(""Postfix"");
 
-        if (postfixMethodInfo is not null && postfixMethodInfo.ValidatePatch(OriginalMethod))
+        if (postfixMethodInfo is not null && postfixMethodInfo.ValidatePatch(OriginalMemberInfo))
         {{
             PostfixDict.Add(instance, (PostfixDelegate)Delegate.CreateDelegate(typeof(PostfixDelegate), instance, postfixMethodInfo));
         }}
