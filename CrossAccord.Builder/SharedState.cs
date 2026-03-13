@@ -1,6 +1,4 @@
-using CrossAccord.Builder;
-
-namespace CrossAccord.Unity;
+namespace CrossAccord.Builder;
 
 public static class SharedState
 {

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <PropertyGroup>
-        <BeatSaberDir>/Users/maribell/BeatSaber/oculus-pc-versions/1-42-0</BeatSaberDir>
-        <UnityEngineManagedDir>/Applications/Unity/Hub/Editor/6000.0.40f1/Unity.app/Contents/Managed/UnityEngine</UnityEngineManagedDir>
-    </PropertyGroup>
-</Project>
