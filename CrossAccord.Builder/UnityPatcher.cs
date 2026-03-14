@@ -9,8 +9,15 @@ public class UnityPatcher : IPostLinkerBuild
     {
         var assemblies = files.Where(it => it.EndsWith(".dll")).ToArray();
 
-        var assemblyParentPath = Directory.GetParent(assemblies.First())!.FullName;
+        var assemblyPath = assemblies.First();
+
+        var stagingPath = Path.GetDirectoryName(assemblyPath);
+
+        if (stagingPath is null)
+            throw new DirectoryNotFoundException($"Could not find staging directory from {assemblyPath}");
+
+        var generatedAssemblyPath = Path.Join(stagingPath, "CrossAccord.Generated.dll");
         
-        AssemblyPatcher.PatchAll(SharedState.PatcherInfos, Path.Join(assemblyParentPath, "CrossAccord.Generated.dll"), assemblyParentPath);
+        AssemblyPatcher.PatchAll(SharedState.PatcherInfos, generatedAssemblyPath, stagingPath);
     }
 }

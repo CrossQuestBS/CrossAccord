@@ -23,15 +23,22 @@ public class RuntimeManager
 
         foreach (var patcherType in types)
         {
-            var methodInfo = patcherType.GetMethod("get_Instance", (global::System.Reflection.BindingFlags)~0);
+            var getInstance = patcherType.GetMethod("get_Instance", (global::System.Reflection.BindingFlags)~0);
             object[] array = [];
-            if (methodInfo == null) continue;
-            var instance = (IAccordPatcher)methodInfo.Invoke(null, array);
-            var methodInfo2 = patcherType.GetMethod("get_OriginalMemberInfo", (global::System.Reflection.BindingFlags)~0);
-            if (methodInfo2 == null) continue;
-            var originalMethod = methodInfo2.Invoke(null, array);
-            if (originalMethod is not null && instance is not null)
-                Patchers.TryAdd((MemberInfo)originalMethod, instance);
+            
+            if (getInstance == null) 
+                continue;
+            
+            var patcherInstance = (IAccordPatcher)getInstance.Invoke(null, array);
+            var getOriginalMemberInfo = patcherType.GetMethod("get_OriginalMemberInfo", (global::System.Reflection.BindingFlags)~0);
+            
+            if (getOriginalMemberInfo == null) 
+                continue;
+            
+            var originalMethod = getOriginalMemberInfo.Invoke(null, array);
+            
+            if (originalMethod is not null && patcherInstance is not null)
+                Patchers.TryAdd((MemberInfo)originalMethod, patcherInstance);
         }
         
     }

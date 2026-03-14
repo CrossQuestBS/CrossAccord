@@ -4,32 +4,29 @@ namespace CrossAccord.Builder;
 
 public class UnityGenerator : IPreLinkerBuild
 {
-    
     public int executeOrder => 1;
+
     public void Execute(List<string> files)
     {
-        var libs = files.First(it => it.Contains("CrossAccord.dll"));
-        var mods = files.First(it => it.Contains("/Mods/"));
+        var crossAccordPath = files.First(it => it.EndsWith("CrossAccord.dll"));
 
-        var libFiles = Directory.GetFiles(Directory.GetParent(libs).Parent.FullName, "*.dll", SearchOption.AllDirectories).Where(
-            fileName => Path.GetExtension(fileName) == ".dll"
-        ).ToList();
-        
-        var modFiles = Directory.GetFiles(Directory.GetParent(mods).FullName, "*.dll", SearchOption.AllDirectories).Where(
-            fileName => Path.GetExtension(fileName) == ".dll"
-        ).ToList();
+        var libDirectory = Path.GetDirectoryName(crossAccordPath);
 
-        var assemblyParentPath = Directory.GetParent(libFiles.First(it => it.Contains("CrossAccord.dll"))).FullName;
+        if (libDirectory is null)
+            throw new DirectoryNotFoundException($"Did not find library directory from path {crossAccordPath}");
 
-        var allFiles = new List<string>();
-        
-        allFiles.AddRange(libFiles);
-        allFiles.AddRange(modFiles);
-        
-        var patchers = AssemblyGenerator.GetAllPatchers(allFiles.ToArray());
-        
+        var gameDirectory = Path.GetDirectoryName(libDirectory);
+
+        if (gameDirectory is null)
+            throw new DirectoryNotFoundException($"Did not find game directory from path {crossAccordPath}");
+
+        var allGameAssemblies = Directory.GetFiles(gameDirectory, "*.dll", SearchOption.AllDirectories)
+            .Where(fileName => fileName.EndsWith(".dll")).ToList();
+
+        var patchers = AssemblyGenerator.GetAllPatchers(allGameAssemblies.ToArray());
+
         SharedState.PatcherInfos = patchers;
 
-        AssemblyGenerator.GeneratePatcherAssembly(patchers, allFiles.ToArray(), assemblyParentPath);
+        AssemblyGenerator.GeneratePatcherAssembly(patchers, allGameAssemblies.ToArray(), libDirectory);
     }
 }

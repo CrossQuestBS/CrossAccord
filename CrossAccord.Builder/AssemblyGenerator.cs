@@ -60,7 +60,7 @@ public static class AssemblyGenerator
     }
     
 
-    public static void GeneratePatcherAssembly(PatcherInfo[] allPatchers, string[] assemblies, string parentPath)
+    public static void GeneratePatcherAssembly(PatcherInfo[] allPatchers, string[] assemblies, string libraryPath)
     {
         var patchers = allPatchers;
         
@@ -103,7 +103,7 @@ public static class AssemblyGenerator
         // load assembly and add to cache
         ms.Seek(0, SeekOrigin.Begin);
 
-        var fileStream = File.Create(Path.Join(parentPath , "CrossAccord.Generated.dll"));
+        var fileStream = File.Create(Path.Join(libraryPath , "CrossAccord.Generated.dll"));
 
         ms.CopyTo(fileStream);
         fileStream.Close();

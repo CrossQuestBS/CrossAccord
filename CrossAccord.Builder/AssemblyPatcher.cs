@@ -110,8 +110,7 @@ public static class AssemblyPatcher
         
         ilProcessor.InsertAfter(nopInstructions["PostfixEnd"], ilProcessor.Create(OpCodes.Ret));
     }
-
-
+    
     public static MethodDefinition? FindOriginalMethod(PatcherInfo info, AssemblyDefinition assemblyDefinition)
     {
         var method = assemblyDefinition.MainModule.Types.SelectMany(it => it.Methods).First(it => it.FullName == info.MethodFullName);
@@ -166,99 +165,4 @@ public static class AssemblyPatcher
             assembly.Write(Path.Join(assemblyParentPath, grouping.Key));
         }
     }
-    
-
-    /*private void ApplyPostFix(MethodDefinition method, MethodDefinition patchMethod)
-    {
-        var ilProcessor = method.Body.GetILProcessor();
-        var reference = method.Module.ImportReference(patchMethod);
-
-        ilProcessor.Remove(method.Body.Instructions.Last());
-
-        for (var i = 0; i < patchMethod.Parameters.Count; i++)
-        {
-            ilProcessor.Emit(OpCodes.Ldarg, i);
-        }
-
-        ilProcessor.Emit(OpCodes.Call, reference);
-        ilProcessor.Emit(OpCodes.Ret);
-    }
-
-    private VariableDefinition CreateLocalResultVariable(MethodDefinition method, ILProcessor ilProcessor,
-        Instruction instruction)
-    {
-        VariableDefinition localResultVariable = new VariableDefinition(method.ReturnType);
-        method.Body.Variables.Add(localResultVariable);
-        if (!method.ReturnType.IsByReference) return localResultVariable;
-
-        Instruction[] instructions =
-        {
-            ilProcessor.Create(OpCodes.Ldc_I4_1),
-            ilProcessor.Create(OpCodes.Newarr, method.ReturnType.GetElementType()),
-            ilProcessor.Create(OpCodes.Ldc_I4_0),
-            ilProcessor.Create(OpCodes.Ldelem_Ref, method.ReturnType.GetElementType()),
-            ilProcessor.Create(OpCodes.Stloc, localResultVariable),
-        };
-
-        foreach (var newInstruction in instructions)
-        {
-            ilProcessor.InsertBefore(instruction, newInstruction);
-        }
-
-        return localResultVariable;
-    }
-
-    private void InsertPrefixPatchStack(MethodDefinition patchMethod, ILProcessor ilProcessor,
-        Instruction instruction, bool hasReturnParameter, VariableDefinition? localResultVariable)
-    {
-        var parameters = patchMethod.Parameters.ToArray().Where(it => !it.Name.Contains("__result")).ToArray();
-
-        for (var i = 0; i < parameters.Length; i++)
-        {
-            ilProcessor.InsertBefore(instruction,
-                ilProcessor.Create(OpCodes.Ldarg, i));
-        }
-
-        if (hasReturnParameter)
-            ilProcessor.InsertBefore(instruction,
-                ilProcessor.Create(OpCodes.Ldloca, localResultVariable));
-    }
-
-
-    private static void HandlePrefixReturn(ILProcessor ilProcessor, Instruction instruction,
-        bool hasReturnParameter,
-        VariableDefinition? localResultVariable)
-    {
-        ilProcessor.InsertBefore(instruction, ilProcessor.Create(OpCodes.Brtrue, instruction));
-
-        if (hasReturnParameter)
-        {
-            ilProcessor.InsertBefore(instruction, ilProcessor.Create(OpCodes.Ldloc, localResultVariable));
-        }
-
-        ilProcessor.InsertBefore(instruction, ilProcessor.Create(OpCodes.Ret));
-    }
-
-    private void ApplyPrefix(MethodDefinition method, MethodDefinition patchMethod)
-    {
-        var ilProcessor = method.Body.GetILProcessor();
-        var reference = method.Module.ImportReference(patchMethod);
-
-        var instruction = method.Body.Instructions[0];
-
-        var hasReturnParameter =
-            patchMethod.Parameters.Any(it => it.Name == "__result" && it.ParameterType.IsByReference);
-
-        var localResultVariable =
-            hasReturnParameter ? CreateLocalResultVariable(method, ilProcessor, instruction) : null;
-
-        var hasBoolReturn = patchMethod.ReturnType.Name.ToLower().StartsWith("bool");
-
-        InsertPrefixPatchStack(patchMethod, ilProcessor, instruction, hasReturnParameter, localResultVariable);
-
-        ilProcessor.InsertBefore(instruction, ilProcessor.Create(OpCodes.Call, reference));
-
-        if (hasBoolReturn)
-            HandlePrefixReturn(ilProcessor, instruction, hasReturnParameter, localResultVariable);
-    }*/
 }
