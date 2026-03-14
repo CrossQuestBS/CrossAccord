@@ -4,7 +4,7 @@ namespace CrossAccord.Builder;
 
 public static class AssemblyHelper
 {
-    private static DefaultAssemblyResolver _resolver;
+    private static DefaultAssemblyResolver? _resolver;
     
     public static void InitializeResolver(string assemblyParentPath, string[] extraPaths)
     {
@@ -19,6 +19,9 @@ public static class AssemblyHelper
 
     public static AssemblyDefinition ReadAssemblyInMemory(string path, bool readWrite = true)
     {
+        if (_resolver is null)
+            throw new Exception("AssemblyResolver is null, make sure to call AssemblyHelper.InitializeResolver");
+        
         return AssemblyDefinition.ReadAssembly(path,
             new ReaderParameters { ReadWrite = readWrite, InMemory = true, AssemblyResolver = _resolver });
     }
